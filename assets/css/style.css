@@ -1,0 +1,22 @@
+a{
+    text-decoration: none;
+    color: #fff;
+}
+
+
+.home .container:has(h1){
+    height: 300px;
+    margin-top: 50px;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+}
+
+.home h1{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 30px;
+    font-weight: 600;
+    
+    
+}

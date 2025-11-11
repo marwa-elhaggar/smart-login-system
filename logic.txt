@@ -1,0 +1,31 @@
+first of all we should get all input values using query Selector
+-- sign up 
+>name input
+>mail-input 
+> password input
+
+
+
+-- login 
+ email input
+password input 
+
+
+
+
+
+// sign up 
+1-create new user => using array of obj 
+2-check if e-mail exists or not 
+2-if email not exist and inputs doesn't empty we should push new user into array 
+//login 
+1-check if email and password exist or not and all inputs aren't empty 
+
+
+// we should create function to check empty in both sign up and login (for inputs )
+
+// we should create function to check if email exist in sign up ?
+
+// create function to check if email and password exist in login ? 
+
+
