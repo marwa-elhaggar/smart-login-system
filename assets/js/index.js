@@ -21,33 +21,56 @@ var logOutButton = document.querySelector(".log-out");
 var userName = document.querySelector(".user-name");
 
 // ^store array in local storage
-if (JSON.parse(localStorage.getItem("users"))) {
-  var users = JSON.parse(localStorage.getItem("users"));
-} else {
-  var users = [];
-}
+var users = JSON.parse(localStorage.getItem("users")) || [];
 
 //^sign up logic
-
 function createUser() {
-  if (checkEmpty() === false) {
-    console.log("all are required");
-    showError("All inputs are required !" ,"signUp");
-    return false;
+  if (!checkEmpty()) {
+    showError("All inputs are required !", "signUp");
+    return;
   }
 
-  validateInputs();
+  var name = signName.value.trim();
+  var email = signEmail.value.trim();
+  var password = signPassword.value.trim();
+
+  const namePattern = /^[A-Za-z\s]{2,}$/;
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+
+  if (!namePattern.test(name)) {
+    showError(
+      "Name must be at least 2 letters and contain only letters.",
+      "signUp"
+    );
+    return;
+  }
+
+  if (!emailPattern.test(email)) {
+    showError("Invalid email format.", "signUp");
+    return;
+  }
+
+  if (!passwordPattern.test(password)) {
+    showError(
+      "Password must be at least 6 characters and include letters and numbers.",
+      "signUp"
+    );
+    return;
+  }
 
   if (checkEmail()) {
-    console.log("existed email");
-    error("existed email", "signUp");
-  } else {
-    users.push(user);
-    localStorage.setItem("users", JSON.stringify(users));
-    signUpError.classList.remove("text-danger");
-    signUpError.classList.add("text-success");
-    signUpError.innerHTML = "Success";
+    showError("Email already exists!", "signUp");
+    return;
   }
+
+  var user = { name, email, password };
+  users.push(user);
+  localStorage.setItem("users", JSON.stringify(users));
+
+  signUpError.classList.remove("text-danger");
+  signUpError.classList.add("text-success");
+  signUpError.innerHTML = "Success! You can now log in.";
 }
 
 // ^ show error message
@@ -55,122 +78,64 @@ function showError(message, errorPage) {
   if (errorPage === "signUp") {
     signUpError.classList.remove("text-success");
     signUpError.classList.add("text-danger");
-    signUpError.innerHTML = `${message}`;
-  } else if (errorPage === "login") {
-    loginError.innerHTML = `${message}`;
+    signUpError.innerHTML = message;
+  } else {
+    loginError.innerHTML = message;
   }
-}
-
-// ^validate with regex
-function validateInputs() {
-  var name = signName.value;
-  var email = signEmail.value;
-  var password = signPassword.value;
-
-  const namePattern = /^[A-Za-z\s]{2,}$/;
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
-
-  if (!namePattern.test(name)) {
-    showError("Name must be at least 2 letters and contain only letters.");
-    return;
-  }
-
-  if (!emailPattern.test(email)) {
-    showError("Invalid email format.");
-    return;
-  }
-
-  if (!passwordPattern.test(password)) {
-    showError(
-      "Password must be at least 6 characters and include letters and numbers."
-    );
-    return;
-  }
-  var user = {
-    name: signName.value,
-    email: signEmail.value,
-    password: signPassword.value,
-  };
 }
 
 // * check if email exist while sign up
-
 function checkEmail() {
-  if (users.length === 0) {
-    console.log("empty array");
-    return false;
-  }
-  for (var i = 0; i < users.length; i++) {
-    if (users[i].email.toLowerCase() === signEmail.value.toLowerCase()) {
-      return true;
-    }
-  }
+  return users.some(
+    (u) => u.email.toLowerCase() === signEmail.value.toLowerCase()
+  );
 }
 
-//* check if all inputs aren't empty
-
+//* check if all signup inputs aren't empty
 function checkEmpty() {
-  if (
-    signName.value === "" ||
-    signEmail.value === "" ||
-    signPassword.value === ""
-  ) {
-    return false;
-  } else {
-    return true;
-  }
+  return (
+    signName.value !== "" && signEmail.value !== "" && signPassword.value !== ""
+  );
 }
 
 // ^ login logic
-
 function login() {
-  if (checkEmptyLogin() === false) {
-    console.log("all are required");
+  if (!checkEmptyLogin()) {
     showError("All inputs are required !", "login");
     return;
   }
 
-  var password = loginPassword.value;
-  var email = loginEmail.value;
+  var email = loginEmail.value.trim();
+  var password = loginPassword.value.trim();
 
-  if (checkUser(password, email) === false) {
-    console.log("incorrect email or password ");
-    showError("*incorrect email or password ", "login");
-  } else {
-    var user;
-    for (var i = 0; i < users.length; i++) {
-      if (users[i].email.toLowerCase() === email.toLowerCase()) {
-        user = users[i].name;
-        break;
-      }
-    }
-    userName.innerHTML = `HELLO ${user.toUpperCase()}`;
-    showHomePage();
+  const user = checkUser(email, password);
+
+  if (!user) {
+    showError("Incorrect email or password", "login");
+    return;
   }
+
+  userName.innerHTML = `HELLO ${user.name.toUpperCase()}`;
+  showHomePage();
 }
 
-//*check if user exist or not
-function checkUser(pass, email) {
+//*check if user exist and password matches
+function checkUser(email, password) {
   for (var i = 0; i < users.length; i++) {
+    var user = users[i];
     if (
-      users[i].password.toLowerCase() === pass.toLowerCase() &&
-      users[i].email.toLowerCase() === email.toLowerCase()
+      user.email.toLowerCase() === email.toLowerCase() &&
+      user.password === password
     ) {
-      return true;
+      return user;
     }
   }
-
   return false;
 }
 
-//* chick if input fields in login empty or not
+//* check empty login fields
 function checkEmptyLogin() {
-  if (loginEmail.value === "" || loginPassword.value === "") {
-    return false;
-  } else {
-    return true;
-  }
+  return loginEmail.value !== "" && loginPassword.value !== "";
 }
 
 // ^ show login page
@@ -178,6 +143,7 @@ function showLoginPage() {
   loginForm.classList.remove("d-none");
   signUpForm.classList.add("d-none");
   homePage.classList.add("d-none");
+  loginError.innerHTML = "";
 }
 
 // ^show signup page
@@ -185,6 +151,7 @@ function showSignUpPage() {
   loginForm.classList.add("d-none");
   signUpForm.classList.remove("d-none");
   homePage.classList.add("d-none");
+  signUpError.innerHTML = "";
 }
 
 // ^show home page
@@ -195,15 +162,14 @@ function showHomePage() {
 }
 
 // ^ events on buttons
-
-loginButton.addEventListener("click", showLoginPage);
 loginButton.addEventListener("click", showLoginPage);
 signUpButton.addEventListener("click", showSignUpPage);
 homeButton.addEventListener("click", login);
 userCreation.addEventListener("click", createUser);
-logOutButton.addEventListener("click", showLoginPage);
+
 logOutButton.addEventListener("click", function () {
   loginEmail.value = "";
   loginPassword.value = "";
-  showError("", "login");
+  loginError.innerHTML = "";
+  showLoginPage();
 });
